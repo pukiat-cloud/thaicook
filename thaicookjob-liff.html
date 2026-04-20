@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ThaiCook Job — เลือกแพ็กเกจ</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: #f0f0f0;
+    min-height: 100vh;
+    padding: 16px;
+    padding-bottom: 100px;
+  }
+
+  /* Header */
+  .header {
+    background: #00B900;
+    border-radius: 16px;
+    padding: 20px 18px 16px;
+    text-align: center;
+    margin-bottom: 14px;
+  }
+  .header-sub { font-size: 11px; color: #c8ffc8; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .header-title { font-size: 20px; font-weight: 600; color: #fff; }
+  .header-hint { font-size: 12px; color: #c8ffc8; margin-top: 4px; }
+
+  /* Package cards */
+  .pkg {
+    background: #fff;
+    border-radius: 14px;
+    border: 2px solid #e0e0e0;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: border-color 0.18s, background 0.18s;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .pkg:active { opacity: 0.9; }
+  .pkg.sel-green  { border-color: #3B6D11; background: #f5faee; }
+  .pkg.sel-teal   { border-color: #0F6E56; background: #f0faf6; }
+  .pkg.sel-gold   { border-color: #BA7517; background: #fffcf3; }
+
+  .pkg-head {
+    padding: 12px 14px 10px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .pkg-left { display: flex; align-items: center; gap: 12px; }
+  .radio {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid #ccc; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.15s;
+  }
+  .radio-dot {
+    width: 11px; height: 11px; border-radius: 50%;
+    background: transparent; transition: background 0.15s;
+  }
+  .sel-green .radio { border-color: #3B6D11; }
+  .sel-green .radio-dot { background: #3B6D11; }
+  .sel-teal  .radio { border-color: #0F6E56; }
+  .sel-teal  .radio-dot { background: #0F6E56; }
+  .sel-gold  .radio { border-color: #BA7517; }
+  .sel-gold  .radio-dot { background: #BA7517; }
+
+  .pkg-days { font-size: 22px; font-weight: 600; color: #222; line-height: 1.1; }
+  .pkg-days span { font-size: 13px; font-weight: 400; color: #888; }
+  .pkg-label { font-size: 11px; color: #aaa; margin-top: 2px; }
+  .badge {
+    font-size: 11px; padding: 4px 11px;
+    border-radius: 999px; font-weight: 500; white-space: nowrap;
+  }
+  .bg { background: #EAF3DE; color: #3B6D11; }
+  .bt { background: #E1F5EE; color: #0F6E56; }
+  .ba { background: #FAEEDA; color: #854F0B; }
+
+  .bonus-bar {
+    background: #fafafa;
+    border-top: 1px solid #f0f0f0;
+    padding: 8px 14px;
+    font-size: 12px; color: #555; line-height: 1.5;
+  }
+  .bonus-bar b { color: #222; font-weight: 600; }
+
+  /* Extras (365 only) */
+  .extras-wrap { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+  .extras-wrap.open { max-height: 300px; }
+  .extras-head {
+    background: #FAEEDA;
+    padding: 7px 14px;
+    font-size: 11px; font-weight: 600; color: #633806;
+    border-top: 1px solid #f0e8d8;
+  }
+  .extra-item {
+    padding: 8px 14px;
+    border-top: 1px solid #f5ede0;
+    display: flex; align-items: flex-start; gap: 8px;
+    background: #fffdf7;
+  }
+  .enum {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #BA7517; color: #fff;
+    font-size: 10px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .etext { font-size: 12px; color: #555; line-height: 1.5; }
+  .etext b { color: #222; font-weight: 600; }
+
+  /* Summary box */
+  .summary {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e8e8e8;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    display: none;
+  }
+  .summary.show { display: block; }
+  .sum-title { font-size: 11px; color: #aaa; margin-bottom: 8px; font-weight: 500; letter-spacing: 0.03em; }
+  .sum-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 5px 0; border-bottom: 1px solid #f5f5f5;
+    font-size: 13px; color: #555;
+  }
+  .sum-row:last-child { border-bottom: none; font-weight: 600; color: #222; padding-top: 8px; }
+  .sum-val { font-weight: 600; }
+  .c-green { color: #3B6D11; }
+  .c-teal  { color: #0F6E56; }
+  .c-gold  { color: #854F0B; }
+
+  /* Sticky CTA */
+  .sticky-footer {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #fff;
+    border-top: 1px solid #e8e8e8;
+    padding: 12px 16px;
+    z-index: 100;
+  }
+  .cta-btn {
+    width: 100%; padding: 14px;
+    border-radius: 12px; border: none;
+    font-size: 15px; font-weight: 600;
+    font-family: 'Sarabun', sans-serif;
+    color: #fff; background: #ccc;
+    cursor: default; transition: background 0.2s;
+  }
+  .cta-btn.ready { background: #00B900; cursor: pointer; }
+  .cta-btn.ready:active { background: #009900; transform: scale(0.99); }
+  .cta-note { font-size: 11px; color: #aaa; text-align: center; margin-top: 6px; }
+
+  /* Confirm screen */
+  .confirm-screen {
+    display: none;
+    padding: 28px 0 120px;
+  }
+  .confirm-screen.show { display: block; }
+  .confirm-top { text-align: center; margin-bottom: 20px; }
+  .confirm-icon {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: #EAF3DE; margin: 0 auto 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+  .confirm-title { font-size: 18px; font-weight: 600; color: #222; margin-bottom: 6px; }
+  .confirm-sub { font-size: 13px; color: #888; line-height: 1.6; }
+  .confirm-msg {
+    background: #fff; border-radius: 14px;
+    border: 1px solid #e8e8e8;
+    padding: 14px 16px; margin-bottom: 16px;
+    font-size: 13px; color: #444; line-height: 1.8;
+    white-space: pre-wrap;
+  }
+  .quote-card {
+    background: #fff; border-radius: 14px;
+    border: 2px solid #00B900;
+    padding: 16px; margin-bottom: 10px;
+  }
+  .quote-card-title {
+    font-size: 13px; font-weight: 600; color: #00B900;
+    margin-bottom: 4px;
+  }
+  .quote-card-desc {
+    font-size: 12px; color: #777; line-height: 1.6; margin-bottom: 14px;
+  }
+  .quote-steps {
+    display: flex; gap: 0; margin-bottom: 14px;
+  }
+  .qstep {
+    flex: 1; text-align: center; position: relative;
+  }
+  .qstep:not(:last-child)::after {
+    content: ''; position: absolute; top: 14px; right: -1px;
+    width: 50%; height: 2px; background: #e0e0e0; z-index: 0;
+  }
+  .qstep:not(:first-child)::before {
+    content: ''; position: absolute; top: 14px; left: -1px;
+    width: 50%; height: 2px; background: #e0e0e0; z-index: 0;
+  }
+  .qstep-dot {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #EAF3DE; border: 2px solid #3B6D11;
+    margin: 0 auto 6px; display: flex; align-items: center;
+    justify-content: center; font-size: 11px; font-weight: 600;
+    color: #3B6D11; position: relative; z-index: 1;
+  }
+  .qstep-label { font-size: 10px; color: #777; line-height: 1.3; }
+  .quote-btn {
+    width: 100%; padding: 14px;
+    border-radius: 12px; border: none;
+    font-size: 15px; font-weight: 600;
+    font-family: 'Sarabun', sans-serif;
+    color: #fff; background: #00B900;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .quote-btn:active { background: #009900; transform: scale(0.99); }
+  .quote-sent {
+    background: #EAF3DE; border-radius: 12px;
+    padding: 12px; text-align: center;
+    font-size: 13px; color: #3B6D11; font-weight: 500;
+    display: none;
+  }
+  .quote-sent.show { display: block; }
+</style>
+</head>
+<body>
+
+<div id="main">
+  <div class="header">
+    <div class="header-sub">THAICOOK JOB — HR & ร้านอาหาร</div>
+    <div class="header-title">เลือกแพ็กเกจลงประกาศ</div>
+    <div class="header-hint">แตะเพื่อเลือก แล้วกดยืนยันด้านล่าง</div>
+  </div>
+
+  <!-- Package 30 -->
+  <div class="pkg" id="pkg30" onclick="selectPkg('30')">
+    <div class="pkg-head">
+      <div class="pkg-left">
+        <div class="radio"><div class="radio-dot"></div></div>
+        <div>
+          <div class="pkg-days">30 <span>วันขึ้นไป</span></div>
+          <div class="pkg-label">แพ็กเกจเริ่มต้น</div>
+        </div>
+      </div>
+      <div class="badge bg">ฟรี +15 วัน</div>
+    </div>
+    <div class="bonus-bar">รับ <b>วันใช้งานเพิ่ม 15 วัน</b> ฟรีทันทีเมื่อสั่งซื้อ</div>
+  </div>
+
+  <!-- Package 90 -->
+  <div class="pkg" id="pkg90" onclick="selectPkg('90')">
+    <div class="pkg-head">
+      <div class="pkg-left">
+        <div class="radio"><div class="radio-dot"></div></div>
+        <div>
+          <div class="pkg-days">90 <span>วันขึ้นไป</span></div>
+          <div class="pkg-label">แพ็กเกจยอดนิยม</div>
+        </div>
+      </div>
+      <div class="badge bt">ฟรี +20 วัน</div>
+    </div>
+    <div class="bonus-bar">รับ <b>วันใช้งานเพิ่ม 20 วัน</b> ฟรีทันทีเมื่อสั่งซื้อ</div>
+  </div>
+
+  <!-- Package 365 -->
+  <div class="pkg" id="pkg365" onclick="selectPkg('365')">
+    <div class="pkg-head">
+      <div class="pkg-left">
+        <div class="radio"><div class="radio-dot"></div></div>
+        <div>
+          <div class="pkg-days" style="color:#854F0B;">365 <span style="color:#BA7517;">วัน</span></div>
+          <div class="pkg-label" style="color:#BA7517;">แพ็กเกจรายปี — คุ้มสุด</div>
+        </div>
+      </div>
+      <div class="badge ba">ฟรี +30 วัน</div>
+    </div>
+    <div class="bonus-bar">รับ <b>วันใช้งานเพิ่ม 30 วัน</b> พร้อม <b>สิทธิพิเศษ 3 อย่าง</b></div>
+    <div class="extras-wrap" id="extras">
+      <div class="extras-head">สิทธิพิเศษเฉพาะแพ็กเกจ 365 วัน</div>
+      <div class="extra-item">
+        <div class="enum">1</div>
+        <div class="etext"><b>Social Boost 1 สัปดาห์</b><br>ปักหมุดตำแหน่งงานผ่าน Social Media</div>
+      </div>
+      <div class="extra-item">
+        <div class="enum">2</div>
+        <div class="etext"><b>Banner Promote</b><br>แสดง Banner บนหน้าเว็บ ThaiCook Job</div>
+      </div>
+      <div class="extra-item">
+        <div class="enum">3</div>
+        <div class="etext"><b>ส่วนลด 10%</b><br>เมื่อต่อแพ็กเกจก่อนหมดอายุ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary" id="summary">
+    <div class="sum-title">สรุปออเดอร์ที่เลือก</div>
+    <div class="sum-row"><span>แพ็กเกจ</span><span class="sum-val" id="s-pkg">—</span></div>
+    <div class="sum-row"><span>วันใช้งานฟรีเพิ่ม</span><span class="sum-val" id="s-bonus">—</span></div>
+    <div class="sum-row" id="s-extra-row" style="display:none"><span>สิทธิพิเศษเพิ่มเติม</span><span class="sum-val c-gold">3 อย่าง</span></div>
+    <div class="sum-row"><span>รวมวันที่ได้รับ</span><span class="sum-val" id="s-total">—</span></div>
+  </div>
+</div>
+
+<!-- Confirm screen (shown after send) -->
+<div class="confirm-screen" id="confirm">
+  <div class="confirm-top">
+    <div class="confirm-icon">✓</div>
+    <div class="confirm-title">สรุปออเดอร์เรียบร้อยแล้ว</div>
+    <div class="confirm-sub">ข้อมูลถูกส่งกลับเข้าแชท LINE แล้ว</div>
+  </div>
+
+  <div class="confirm-msg" id="confirm-msg"></div>
+
+  <div class="quote-card">
+    <div class="quote-card-title">📄 ขอใบเสนอราคาเต็มรูปแบบ</div>
+    <div class="quote-card-desc">
+      กดปุ่มด้านล่างเพื่อแจ้งแอดมิน — ทีมงานจะจัดส่งใบเสนอราคาพร้อมรายละเอียดราคาและเงื่อนไขให้คุณทางแชท LINE
+    </div>
+    <div class="quote-steps">
+      <div class="qstep">
+        <div class="qstep-dot">1</div>
+        <div class="qstep-label">กดขอ<br>ใบเสนอราคา</div>
+      </div>
+      <div class="qstep">
+        <div class="qstep-dot">2</div>
+        <div class="qstep-label">แอดมิน<br>รับทราบ</div>
+      </div>
+      <div class="qstep">
+        <div class="qstep-dot">3</div>
+        <div class="qstep-label">ได้รับ<br>ใบเสนอราคา</div>
+      </div>
+    </div>
+    <button class="quote-btn" id="quote-btn" onclick="requestQuote()">
+      📄 ขอใบเสนอราคา — ติดต่อแอดมิน
+    </button>
+    <div class="quote-sent" id="quote-sent">
+      ✅ ส่งคำขอใบเสนอราคาแล้ว<br>
+      <span style="font-size:11px;font-weight:400;color:#3B6D11;">แอดมินจะส่งใบเสนอราคาให้ทางแชท LINE เร็ว ๆ นี้</span>
+    </div>
+  </div>
+</div>
+
+<!-- Sticky CTA -->
+<div class="sticky-footer">
+  <button class="cta-btn" id="cta" onclick="sendToLine()">เลือกแพ็กเกจก่อนดำเนินการ</button>
+  <div class="cta-note" id="cta-note">ระบบจะส่งข้อมูลกลับเข้าแชท LINE ของคุณ</div>
+</div>
+
+<script>
+var chosen = null;
+var data = {
+  '30':  { label: '30 วันขึ้นไป', bonus: '+15 วัน', total: '45+ วัน', cls: 'sel-green', vcls: 'c-green', extras: false },
+  '90':  { label: '90 วันขึ้นไป', bonus: '+20 วัน', total: '110+ วัน', cls: 'sel-teal', vcls: 'c-teal', extras: false },
+  '365': { label: '365 วัน (รายปี)', bonus: '+30 วัน', total: '395 วัน', cls: 'sel-gold', vcls: 'c-gold', extras: true }
+};
+
+function selectPkg(id) {
+  ['30','90','365'].forEach(function(k) {
+    document.getElementById('pkg'+k).className = 'pkg';
+  });
+  document.getElementById('extras').classList.remove('open');
+  chosen = id;
+  var d = data[id];
+  document.getElementById('pkg'+id).className = 'pkg ' + d.cls;
+  if (id === '365') document.getElementById('extras').classList.add('open');
+
+  var sv = document.getElementById('s-pkg');
+  sv.textContent = d.label; sv.className = 'sum-val ' + d.vcls;
+  var sb = document.getElementById('s-bonus');
+  sb.textContent = d.bonus; sb.className = 'sum-val ' + d.vcls;
+  var st = document.getElementById('s-total');
+  st.textContent = d.total; st.className = 'sum-val ' + d.vcls;
+  document.getElementById('s-extra-row').style.display = d.extras ? 'flex' : 'none';
+  document.getElementById('summary').className = 'summary show';
+
+  var btn = document.getElementById('cta');
+  btn.className = 'cta-btn ready';
+  btn.textContent = 'ยืนยัน — แพ็กเกจ ' + d.label;
+}
+
+function buildMessage() {
+  var d = data[chosen];
+  var now = new Date();
+  var dateStr = now.toLocaleDateString('th-TH', { year:'numeric', month:'long', day:'numeric' });
+  var msg = '📋 สรุปออเดอร์แพ็กเกจ ThaiCook Job\n';
+  msg += '━━━━━━━━━━━━━━━━━━\n';
+  msg += '📦 แพ็กเกจ: ' + d.label + '\n';
+  msg += '🎁 วันฟรีเพิ่ม: ' + d.bonus + '\n';
+  msg += '📅 รวมวันใช้งาน: ' + d.total + '\n';
+  if (d.extras) {
+    msg += '⭐ สิทธิพิเศษ:\n';
+    msg += '   1. Social Boost 1 สัปดาห์\n';
+    msg += '   2. Banner Promote หน้าเว็บ\n';
+    msg += '   3. ส่วนลด 10% เมื่อต่อแพ็กเกจ\n';
+  }
+  msg += '━━━━━━━━━━━━━━━━━━\n';
+  msg += '🗓️ วันที่: ' + dateStr + '\n';
+  msg += '🔗 hoteljob.in.th/restaurant-jobs/register/';
+  return msg;
+}
+
+function buildQuoteMessage() {
+  var d = data[chosen];
+  var now = new Date();
+  var dateStr = now.toLocaleDateString('th-TH', { year:'numeric', month:'long', day:'numeric' });
+  var msg = '📄 ขอใบเสนอราคา — ThaiCook Job\n';
+  msg += '━━━━━━━━━━━━━━━━━━\n';
+  msg += '📦 แพ็กเกจที่สนใจ: ' + d.label + '\n';
+  msg += '🎁 วันฟรีเพิ่ม: ' + d.bonus + '\n';
+  msg += '📅 รวมวันใช้งาน: ' + d.total + '\n';
+  if (d.extras) {
+    msg += '⭐ รวมสิทธิพิเศษ 3 อย่าง\n';
+  }
+  msg += '━━━━━━━━━━━━━━━━━━\n';
+  msg += '📌 กรุณาจัดส่งใบเสนอราคาเต็มรูปแบบ\n';
+  msg += '   พร้อมราคาและเงื่อนไขการชำระเงิน\n';
+  msg += '🗓️ วันที่ขอ: ' + dateStr;
+  return msg;
+}
+
+function sendToLine() {
+  if (!chosen) return;
+  var msg = buildMessage();
+  if (window.liff && liff.isInClient && liff.isInClient()) {
+    liff.sendMessages([{ type: 'text', text: msg }])
+      .then(function() { showConfirm(msg); })
+      .catch(function() { showConfirm(msg); });
+  } else {
+    showConfirm(msg);
+  }
+}
+
+function showConfirm(msg) {
+  document.getElementById('main').style.display = 'none';
+  document.getElementById('confirm').className = 'confirm-screen show';
+  document.getElementById('confirm-msg').textContent = msg;
+  // Hide sticky footer original button, show close
+  var btn = document.getElementById('cta');
+  btn.textContent = 'ปิดหน้าต่าง';
+  btn.className = 'cta-btn ready';
+  document.getElementById('cta-note').style.display = 'none';
+  btn.onclick = function() {
+    if (window.liff && liff.closeWindow) liff.closeWindow();
+    else window.close();
+  };
+}
+
+function requestQuote() {
+  var msg = buildQuoteMessage();
+  var qbtn = document.getElementById('quote-btn');
+  var qsent = document.getElementById('quote-sent');
+  if (window.liff && liff.isInClient && liff.isInClient()) {
+    liff.sendMessages([{ type: 'text', text: msg }])
+      .then(function() {
+        qbtn.style.display = 'none';
+        qsent.className = 'quote-sent show';
+      })
+      .catch(function() {
+        qbtn.style.display = 'none';
+        qsent.className = 'quote-sent show';
+      });
+  } else {
+    // Browser fallback
+    qbtn.style.display = 'none';
+    qsent.className = 'quote-sent show';
+  }
+}
+
+// Init LIFF
+// ⚠️ แทนที่ 'YOUR_LIFF_ID' ด้วย LIFF ID จริงจาก LINE Developers Console
+var LIFF_ID = 'YOUR_LIFF_ID';
+if (window.liff) {
+  liff.init({ liffId: LIFF_ID }).catch(function() {
+    console.log('LIFF init skipped (browser mode)');
+  });
+}
+</script>
+</body>
+</html>
