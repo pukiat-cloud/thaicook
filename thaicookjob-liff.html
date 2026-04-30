@@ -42,6 +42,7 @@
   .pkg:active { opacity: 0.9; }
   .pkg.sel-green  { border-color: #3B6D11; background: #f5faee; }
   .pkg.sel-teal   { border-color: #0F6E56; background: #f0faf6; }
+  .pkg.sel-purple { border-color: #6B3FA0; background: #faf5ff; }
   .pkg.sel-gold   { border-color: #BA7517; background: #fffcf3; }
 
   .pkg-head {
@@ -63,6 +64,8 @@
   .sel-green .radio-dot { background: #3B6D11; }
   .sel-teal  .radio { border-color: #0F6E56; }
   .sel-teal  .radio-dot { background: #0F6E56; }
+  .sel-purple .radio { border-color: #6B3FA0; }
+  .sel-purple .radio-dot { background: #6B3FA0; }
   .sel-gold  .radio { border-color: #BA7517; }
   .sel-gold  .radio-dot { background: #BA7517; }
 
@@ -75,6 +78,7 @@
   }
   .bg { background: #EAF3DE; color: #3B6D11; }
   .bt { background: #E1F5EE; color: #0F6E56; }
+  .bp { background: #F0E8FF; color: #6B3FA0; }
   .ba { background: #FAEEDA; color: #854F0B; }
 
   .bonus-bar {
@@ -130,6 +134,7 @@
   .sum-val { font-weight: 600; }
   .c-green { color: #3B6D11; }
   .c-teal  { color: #0F6E56; }
+  .c-purple{ color: #6B3FA0; }
   .c-gold  { color: #854F0B; }
 
   /* Sticky CTA */
@@ -265,6 +270,21 @@
     <div class="bonus-bar">รับ <b>วันใช้งานเพิ่ม 20 วัน</b> ฟรีทันทีเมื่อสั่งซื้อ</div>
   </div>
 
+  <!-- Package 180 -->
+  <div class="pkg" id="pkg180" onclick="selectPkg('180')">
+    <div class="pkg-head">
+      <div class="pkg-left">
+        <div class="radio"><div class="radio-dot"></div></div>
+        <div>
+          <div class="pkg-days" style="color:#6B3FA0;">180 <span style="color:#6B3FA0;">วันขึ้นไป</span></div>
+          <div class="pkg-label" style="color:#9B6FC0;">แพ็กเกจ 6 เดือน</div>
+        </div>
+      </div>
+      <div class="badge bp">ฟรี +25 วัน</div>
+    </div>
+    <div class="bonus-bar">รับ <b>วันใช้งานเพิ่ม 25 วัน</b> ฟรีทันทีเมื่อสั่งซื้อ</div>
+  </div>
+
   <!-- Package 365 -->
   <div class="pkg" id="pkg365" onclick="selectPkg('365')">
     <div class="pkg-head">
@@ -355,11 +375,12 @@ var chosen = null;
 var data = {
   '30':  { label: '30 วันขึ้นไป', bonus: '+15 วัน', total: '45+ วัน', cls: 'sel-green', vcls: 'c-green', extras: false },
   '90':  { label: '90 วันขึ้นไป', bonus: '+20 วัน', total: '110+ วัน', cls: 'sel-teal', vcls: 'c-teal', extras: false },
+  '180': { label: '180 วันขึ้นไป', bonus: '+25 วัน', total: '205+ วัน', cls: 'sel-purple', vcls: 'c-purple', extras: false },
   '365': { label: '365 วัน (รายปี)', bonus: '+30 วัน', total: '395 วัน', cls: 'sel-gold', vcls: 'c-gold', extras: true }
 };
 
 function selectPkg(id) {
-  ['30','90','365'].forEach(function(k) {
+  ['30','90','180','365'].forEach(function(k) {
     document.getElementById('pkg'+k).className = 'pkg';
   });
   document.getElementById('extras').classList.remove('open');
